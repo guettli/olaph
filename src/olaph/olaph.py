@@ -5,6 +5,9 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import spacy
+from spacy.tokenizer import Tokenizer
+from spacy.util import compile_prefix_regex, compile_infix_regex, compile_suffix_regex
+
 from lingua import Language, LanguageDetectorBuilder
 from num2words import num2words
 import requests
@@ -53,6 +56,20 @@ class Olaph:
             "fr": spacy.load("fr_core_news_sm"),
             "es": spacy.load("es_core_news_sm"),
         }
+        #tokenizer fix for contractions, else "don't" would lead to tokens "do" and "n't"
+        nlp_en = self.nlps["en"]
+        infixes = nlp_en.Defaults.infixes
+        infixes = [x for x in nlp_en.Defaults.infixes if not re.search(r"['’]", x)]
+        infix_re = compile_infix_regex(infixes)
+        nlp_en.tokenizer = Tokenizer(
+            nlp_en.vocab,
+            rules={},
+            prefix_search=compile_prefix_regex(nlp_en.Defaults.prefixes).search,
+            suffix_search=compile_suffix_regex(nlp_en.Defaults.suffixes).search,
+            infix_finditer=infix_re.finditer,
+            token_match=nlp_en.Defaults.token_match,
+        )
+
         self.detector = LanguageDetectorBuilder.from_languages(
             Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.SPANISH
         ).with_minimum_relative_distance(0.6).build()
@@ -266,12 +283,11 @@ class Olaph:
         for token in doc:
             raw = token.text
 
-            # Punctuation: keep tight
             if raw in string.punctuation:
                 tokens.append(raw)
                 continue
 
-            # Acronym or abbreviation detection
+            # Acronym or abbr
             norm = self._normalize_acronym(raw)
             is_acronym = (
                 len(norm) > 1
@@ -285,7 +301,6 @@ class Olaph:
                 tokens.append(resolved if resolved else raw)
                 continue
 
-            # Regular words
             try:
                 tense_list = token.morph.get("Tense")
                 tense = tense_list[0] if tense_list else None
@@ -320,11 +335,9 @@ class Olaph:
             if phonemized:
                 results.append(phonemized)
 
-        # join all phonemized sentences
         final_text = " ".join(results).strip()
         final_text = re.sub(r"\s+([,.!?;:])", r"\1", final_text)
 
-        # ✅ Only add one period if the whole text has none
         if not re.search(r"[.!?]\s*$", final_text):
             final_text += "."
 

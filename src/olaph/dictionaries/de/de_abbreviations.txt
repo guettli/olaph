@@ -47,7 +47,6 @@ DP	/deːˈpeː/
 DW	/deːveː/
 EG	/eːˈɡeː/
 EP	/eːˈpeː/
-EU	/eːˈʔuː/
 FC	/ɛfˈt͡seː/
 FFP2	/ɛfʔɛfpeːˈt͡svaɪ̯/
 FH	/ɛfˈhaː/
@@ -74,7 +73,6 @@ MA	/ɛmˈʔaː/
 MD	/ɛmˈʔdeː/
 MG	/ɛmˈɡeː/
 MP	/ɛmˈpiː/
-MP3	/ɛmpeːˈdʁaɪ̯/
 MW	/ɛmˈveː/
 NC	/ɛnˈtseː/
 NP	/ɛnˈpeː/
@@ -123,7 +121,6 @@ ZK	/t͡sɛtˈkaː/
 ÖVP	/øːfaʊ̯ˈpeː/
 ÖWB	/øveˈbeː/
 ČSSR	/ˌt͡ʃeːʔɛsʔɛsˈʔɛʁ/
-USA	/ˈuːˈɛsˈaː/
 CIA	/siːaɪeɪ̯/
 FBI	/ɛfbiːaɪ/
 NYPD	/ɛnwaɪpiːdiː/
