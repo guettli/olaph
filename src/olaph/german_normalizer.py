@@ -299,7 +299,7 @@ class Normalizer:
                 normalized_number = number_literal(number_cleaned)
                 if normalized_number is None:
                     normalized_number = " ".join([number_literal(x) for x in number_cleaned])
-                if normalized_number.startswith("eins"):
+                if normalized_number.startswith("eins") and normalized_number != "eins":
                     normalized_number = "ein" + normalized_number[4:]
                 numbers_normalized.append((number,number_cleaned, normalized_number))
         for number, number_cleaned, normalized_number in sorted(numbers_normalized, key=lambda x : int(x[1]), reverse=True):
@@ -335,6 +335,8 @@ class Normalizer:
         input_sentence = input_sentence.replace("einsund", "einund")
         input_sentence = input_sentence.replace("einshundert", "einhundert")
         input_sentence = input_sentence.replace(" ein s ", " eins ")
+        input_sentence = input_sentence.replace(" eins s ", " eins ")
+
         input_sentence = re.sub(r" +", " ", input_sentence).strip()
         return input_sentence
 
