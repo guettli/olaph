@@ -289,7 +289,7 @@ class Olaph:
             if idx > 0:
                 if phonemized_sentence_split[idx-1] == "ðə" and re.sub(r"[ˈˌ]", "", word)[0] in "iyɨʉɯuɪʏʊeøɘɵɤoe̞ø̞əɤ̞o̞ɛœɜɞʌɔæɐaɶäɑɒ":
                     phonemized_sentence_corrected[idx-1] = "ði"
-        return " ".join(phonemized_sentence_corrected)
+        return " ".join(phonemized_sentence_corrected).strip()
 
     def _phonemize_sentence(self, sentence: str, lang: str) -> str:
         """Phonemize one sentence, fixing punctuation and spacing."""
