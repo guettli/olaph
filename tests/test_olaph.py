@@ -25,7 +25,7 @@ def test_homographs(graphemes, phonemes):
     assert phonemizer.phonemize_text(graphemes, lang="en") == phonemes
 
 @pytest.mark.parametrize("graphemes, phonemes", [
-    ("The Oktoberfest in München is a must visit event.", "ði ɔkˈtoːbɐˌfɛst ˈɪn ˈmʏnçn̩ ˈɪz ˈeɪ mˈʌst vˈɪzɪt ɪvˈɛnt."),
+    ("The Oktoberfest in München is a must visit event.", "ði ɔkˈtoːbɐˌfɛst ˈɪn ˈmʏnçn̩ ˈɪz ə mˈʌst vˈɪzɪt ɪvˈɛnt."),
     ("They visited the Museo del Prado in Madrid.", "ðˈe‍ɪ vˈɪzɪtɪd ðə museo ˈdɛɫ ˈpɹɑdoʊ ˈɪn məˈdɹɪd."),
 ])
 def test_cross_lingual(graphemes, phonemes):
