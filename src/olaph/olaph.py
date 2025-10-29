@@ -94,8 +94,12 @@ class Olaph:
                     pos = parts[2] if len(parts) > 2 else "base"
                     phoneme = phoneme.split(",")[0].replace("/", "")
                     grapheme = grapheme.lower()
-                    self.lang_dict[lang].setdefault(grapheme, {})[pos] = phoneme
-                    self.all_lang_word_dict.setdefault(grapheme, {"base": phoneme})
+                    self.lang_dict[lang].setdefault(grapheme, {})
+                    if pos not in self.lang_dict[lang][grapheme]:
+                        self.lang_dict[lang][grapheme][pos] = phoneme
+
+                    if grapheme not in self.all_lang_word_dict:
+                        self.all_lang_word_dict[grapheme] = {"base": phoneme}
 
     def _load_general(self):
         path = self.base_dir / "dictionaries/general.txt"
@@ -275,6 +279,18 @@ class Olaph:
 
         return re.sub(number_pattern, replace_number, sentence)
 
+    def _postprocess_sentence(self, phonemized_sentence:str, lang:str):
+        #EN: dfferentiate pronunciation of the if the following word starts with a vowel phoneme. Does NOT catch special cases like "unit"
+        phonemized_sentence_corrected= []
+        phonemized_sentence_split = phonemized_sentence.split()
+
+        for idx, word in enumerate(phonemized_sentence_split):
+            phonemized_sentence_corrected.append(word)
+            if idx > 0:
+                if phonemized_sentence_split[idx-1] == "ðə" and re.sub(r"[ˈˌ]", "", word)[0] in "iyɨʉɯuɪʏʊeøɘɵɤoe̞ø̞əɤ̞o̞ɛœɜɞʌɔæɐaɶäɑɒ":
+                    phonemized_sentence_corrected[idx-1] = "ði"
+        return " ".join(phonemized_sentence_corrected)
+
     def _phonemize_sentence(self, sentence: str, lang: str) -> str:
         """Phonemize one sentence, fixing punctuation and spacing."""
         doc = self.nlps[lang](sentence)
@@ -332,8 +348,9 @@ class Olaph:
         for sentence in sentences:
             processed = self._preprocess_sentence(sentence, lang)
             phonemized = self._phonemize_sentence(processed, lang)
-            if phonemized:
-                results.append(phonemized)
+            phonemized_postprocessed = self._postprocess_sentence(phonemized, lang)
+            if phonemized_postprocessed:
+                results.append(phonemized_postprocessed)
 
         final_text = " ".join(results).strip()
         final_text = re.sub(r"\s+([,.!?;:])", r"\1", final_text)
