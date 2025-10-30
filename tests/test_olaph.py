@@ -31,3 +31,10 @@ def test_homographs(graphemes, phonemes):
 def test_cross_lingual(graphemes, phonemes):
     assert phonemizer.phonemize_text(graphemes, lang="en") == phonemes
 
+@pytest.mark.parametrize("graphemes, phonemes", [
+    ("das Finalfeld wurde von den neun nächstplatzierten übernommen.", "das fiˈnaːlfɛlt ˈvʊʁdə fɔn deːn nɔɪ̯n nɛːçstplaˈt͡siːɐ̯tn̩ ˈyːbɐˌnɔmən."),
+    ("Der Verwaltungssitz befindet sich in Botswana.", "deːɐ̯ fɛɐ̯ˈvaltʊŋszɪt͡s bəˈfɪndət zɪç ɪn bɔˈt͡svaːna."),
+])
+def test_probability_scoring(graphemes, phonemes):
+    assert phonemizer.phonemize_text(graphemes, lang="de") == phonemes
+

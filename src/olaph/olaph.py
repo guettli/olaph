@@ -176,6 +176,97 @@ class Olaph:
         yield word.replace("ß", "ss")
         yield word.replace("ß", "ss").replace("-", "")
 
+    def _get_splits(self, word, dictionary, memo=None, connecting_s=True):
+        if memo is None:
+            memo = {}
+
+        if word in memo:
+            return memo[word]
+
+        if word in dictionary:
+            memo[word] = ([word], [word], None)
+            return memo[word]
+
+        best_prefix_split = None
+        best_suffix_split = None
+        best_connecting_s_split = None
+
+        for i in range(len(word), 0, -1):
+            prefix = word[:i]
+            suffix = word[i:]
+            if prefix in dictionary:
+                if suffix == "":
+                    memo[word] = ([prefix], [prefix], None)
+                    return memo[word]
+                result = self._get_splits(suffix, dictionary, memo)
+                if result is not None and result[0] is not None:
+                    current_split = [prefix] + result[0]
+                    if best_prefix_split is None or len(current_split) < len(best_prefix_split):
+                        best_prefix_split = current_split
+
+        for i in range(len(word), 0, -1):
+            suffix = word[-i:]
+            prefix = word[:-i]
+            if suffix in dictionary:
+                if prefix == "":
+                    memo[word] = ([suffix], [suffix], None)
+                    return memo[word]
+                result = self._get_splits(prefix, dictionary, memo)
+                if result is not None and result[1] is not None:
+                    current_split = result[1] + [suffix]
+                    if best_suffix_split is None or len(current_split) < len(best_suffix_split):
+                        best_suffix_split = current_split
+
+        if connecting_s:
+            for i in range(1, len(word)-1):
+                if word[i] == "s":
+                    prefix = word[:i]
+                    suffix = word[i+1:]
+                    if self._get_splits(prefix, dictionary, memo) and self._get_splits(suffix, dictionary, memo):
+                        split_prefix = self._get_splits(prefix, dictionary, memo)[0]
+                        split_suffix = self._get_splits(suffix, dictionary, memo)[1]
+                        if split_prefix is not None and split_suffix is not None:
+                            current_split = split_prefix + ["s"] + split_suffix
+                            if best_connecting_s_split is None or len(current_split) <= len(best_connecting_s_split):
+                                best_connecting_s_split = current_split
+                        else:
+                            best_connecting_s_split = None
+        memo[word] = (best_prefix_split, best_suffix_split, best_connecting_s_split)
+        return memo[word]
+
+    def _get_probability(self, word, max_length, lang, alpha=15):
+        if word not in self.word_probabilities[lang]:
+            return 0
+        else:
+            freq = self.word_probabilities[lang][word]
+            length_weight = (len(word) / max_length) ** alpha
+            if len(word) == 1:
+                length_penalty = 0.1
+            elif len(word) == 2:
+                length_penalty = 0.5
+            else:
+                length_penalty = 1
+            return freq * length_weight * length_penalty
+
+    def _get_probabilities(self, words, lang="de"):
+        probability = 0
+        if not words:
+            return 0
+        for word in words:
+            probability += self._get_probability(word, len("".join(words)), lang)
+
+        word_count_penalty = (1 / len(words)) ** 15
+        return probability * word_count_penalty
+
+    def _get_best_part_words(self, part_words, lang="de"):
+        probabilities = [self._get_probabilities(x, lang) for x in part_words if x is not None]
+        if len(probabilities) > 0:
+            best_index = max((v, i) for i, v in enumerate(probabilities))[1]
+            best_index = probabilities.index(max(probabilities))
+            return part_words[best_index]
+        return None
+
+
     def phonemize_word(self, word: str, lang: str, pos: Optional[str] = None, tense: Optional[str] = None) -> str:
         if not word or word.isdigit():
             return ""
@@ -196,9 +287,27 @@ class Olaph:
         )
         if phoneme:
             return phoneme
+        part_words = self._get_best_part_words(self._get_splits(cleaned, self.lang_dict[lang]), lang)
+        if not part_words:
+            cleaned_word = re.sub(r'[^\w\s]', '', cleaned)
+            part_words = self._get_best_part_words(self._get_splits(cleaned_word, self.lang_dict[lang]), lang)
+        if not part_words:
+            part_words = self._get_best_part_words(self._get_splits(cleaned_word, self.all_lang_word_dict), lang)
+        if not part_words:
+            self.failed_words.append(word)
+            raise ValueError(f"Phonemization failed for word: {word}")
+        word_phonemized = ""
 
-        self.failed_words.append(word)
-        return word
+        for part_word in part_words:
+            part_lookup = self._lookup(part_word, self.lang_dict[lang], None, None) or self._lookup(part_word, self.all_lang_word_dict, None, None)
+            if not part_lookup:
+                self.failed_words.append(f"{part_word}\t{lang}")
+            else:
+                word_phonemized += part_lookup
+
+        if not word_phonemized:
+            raise ValueError(f"Phonemization failed for word: {word}")
+        return word_phonemized
 
     def _normalize_acronym(self, text: str) -> str:
         if re.fullmatch(r"(?:[A-Z]\.){2,}[A-Z]\.?", text):
