@@ -57,15 +57,18 @@ class Olaph:
             "es": spacy.load("es_core_news_sm"),
         }
         #tokenizer fix for contractions, else "don't" would lead to tokens "do" and "n't"
+        #UPDATE: also added suffix rules for words like "driver's"
         nlp_en = self.nlps["en"]
         infixes = nlp_en.Defaults.infixes
         infixes = [x for x in nlp_en.Defaults.infixes if not re.search(r"['’]", x)]
         infix_re = compile_infix_regex(infixes)
+        suffixes = [x for x in nlp_en.Defaults.suffixes if not re.search(r"['’]", x)]
+
         nlp_en.tokenizer = Tokenizer(
             nlp_en.vocab,
             rules={},
             prefix_search=compile_prefix_regex(nlp_en.Defaults.prefixes).search,
-            suffix_search=compile_suffix_regex(nlp_en.Defaults.suffixes).search,
+            suffix_search=compile_suffix_regex(suffixes).search,
             infix_finditer=infix_re.finditer,
             token_match=nlp_en.Defaults.token_match,
         )
@@ -407,7 +410,7 @@ class Olaph:
 
         for token in doc:
             raw = token.text
-
+            print(raw)
             if raw in string.punctuation:
                 tokens.append(raw)
                 continue
