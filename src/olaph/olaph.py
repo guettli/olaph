@@ -337,7 +337,7 @@ class Olaph:
         return self._spell_letters(text, lang) or self._spell_letters(text, "en")
 
     def _preprocess_sentence(self, sentence: str, lang: str) -> str:
-        sentence = sentence.replace("’", "").replace("-", " ")
+        sentence = re.sub(r"[’'\"“”‘‛‧·—–\-]", "", sentence)
         sentence = re.sub(r" +", " ", sentence)
         for k, v in self.lang_replacements_dict.get(lang, {}).items():
             pattern = rf"\b{re.escape(k)}\b"
