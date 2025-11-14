@@ -36997,8 +36997,8 @@ domtars	/ˈdɑmtɝz/
 domzalski	/dəmˈzɑɫski/
 don	/dˈɒn/
 dons	/ˈdɑnz/
-dont	/ˈdoʊn/, /ˈdoʊnt/
-donts	/ˈdoʊns/, /ˈdoʊnts/
+dont	/ˈdoʊnt/
+donts	/ˈdoʊnts/
 dona	/dˈə‍ʊnɐ/
 donadio	/doʊˈnɑdioʊ/
 donaghey	/ˈdɑnəɡi/
@@ -92342,7 +92342,7 @@ ocanas	/oʊˈkænəz/
 ocarroll	/oʊˈkæɹəɫ/, /oʊˈkɛɹəɫ/
 ocilla	/oʊˈsɪɫə/
 oclair	/oʊˈkɫɝ/
-oclock	/əklˈɒk/
+oclock	/əˈklɒk/
 oconnell	/oʊˈkɑnəɫ/
 oconner	/oʊˈkɑnɝ/
 oconners	/oʊˈkɑnɝz/

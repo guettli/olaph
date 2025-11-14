@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "olaph"
-version = "0.1.12"
+version = "0.1.13"
 description = "A multilingual phonemizer combining lexica, NLP, and probabilistic scoring for improved phonemization accuracy.."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -55,6 +55,7 @@ dependencies = [
   "pydantic==2.11.10",
   "pydantic-core==2.33.2",
   "pygments==2.19.2",
+  "regex==2025.9.18",
   "rich==14.1.0",
   "setuptools==80.9.0",
   "shellingham==1.5.4",

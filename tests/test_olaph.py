@@ -1,5 +1,5 @@
 import pytest
-from olaph import Olaph  # adjust this import to your actual module
+from olaph import Olaph
 
 phonemizer = Olaph()
 
@@ -38,3 +38,29 @@ def test_cross_lingual(graphemes, phonemes):
 def test_probability_scoring(graphemes, phonemes):
     assert phonemizer.phonemize_text(graphemes, lang="de") == phonemes
 
+
+
+@pytest.mark.parametrize("graphemes, phonemes", [
+    ("Don't touch the driver’s radio at eight o’clock unless you’re ready for some loud rock’n’roll.", "ˈdoʊnt tˈʌt‍ʃ ðə ˈdɹaɪvɝz ɹˈe‍ɪdɪˌə‍ʊ ˈæt ˈe‍ɪt əˈklɒk ʌnlˈɛs ˈjuɹ ɹˈɛdi fˈɔː sˈʌm lˈa‍ʊd ˈɹɑkənˈɹoʊɫ."),
+])
+def test_quotation_marks_en(graphemes, phonemes):
+    assert phonemizer.phonemize_text(graphemes, lang="en") == phonemes
+
+
+@pytest.mark.parametrize("graphemes, phonemes", [
+    ("Heut' geh’ ich zu Opa’s Garten, weil's dort schön is’, und frag’, ob er’s erlaubt, dass ich sein’n alten Ball nehm’.", "hɔɪ̯t ɡeː ɪç t͡suː ˈoːpas ˈɡ̊aʁtn̩, vaɪ̯ls dɔʁt ʃøːn ɪs, ʊnt fʁaːk, ɔp eːɐ̯s ɛɐ̯ˈlaʊ̯pt, das ɪç ʃeiɲ ˈaltn̩ bal nəhm̩."),
+])
+def test_quotation_marks_de(graphemes, phonemes):
+    assert phonemizer.phonemize_text(graphemes, lang="de") == phonemes
+
+@pytest.mark.parametrize("graphemes, phonemes", [
+    ("l'écart entre les dalits et les non dalits augmente depuis le début des années quatre vingt dix consacrant ainsi l'échec des politiques de développement qui trop souvent ignorent le problème.", "lekaʁ ɑ̃tʁ le dali e le nɔ̃ dali ogmɑ̃t dəpɥi lə deby de ane katʁ vɛ̃ dis kɔ̃sakʁɑ̃ ɛ̃si leʃɛk de pɔlitik də devlɔpmɑ̃ ki tʁo suvɑ̃ iɲɔʁ lə pʁɔblɛm."),
+])
+def test_quotation_marks_fr(graphemes, phonemes):
+    assert phonemizer.phonemize_text(graphemes, lang="fr") == phonemes
+
+@pytest.mark.parametrize("graphemes, phonemes", [
+    ("Pa’ qué voy a decirte que no, si sé que t’ha’ ido bien y que to’ lo que hiciste fue pa’ mejorar.", "pa ˈke ˈboj a deθiɾte ke no, si ˈse ke ta iðo bjen i ke ˈto lo ke iθiste fwe pa mexoɾaɾ."),
+])
+def test_quotation_marks_es(graphemes, phonemes):
+    assert phonemizer.phonemize_text(graphemes, lang="es") == phonemes

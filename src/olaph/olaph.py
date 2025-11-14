@@ -1,4 +1,4 @@
-import re
+import regex as re
 import string
 import logging
 from pathlib import Path
@@ -56,23 +56,26 @@ class Olaph:
             "fr": spacy.load("fr_core_news_sm"),
             "es": spacy.load("es_core_news_sm"),
         }
-        #tokenizer fix for contractions, else "don't" would lead to tokens "do" and "n't"
-        #UPDATE: also added suffix rules for words like "driver's"
-        nlp_en = self.nlps["en"]
-        infixes = nlp_en.Defaults.infixes
-        infixes = [x for x in nlp_en.Defaults.infixes if not re.search(r"['’]", x)]
-        infix_re = compile_infix_regex(infixes)
-        suffixes = [x for x in nlp_en.Defaults.suffixes if not re.search(r"['’]", x)]
-
-        nlp_en.tokenizer = Tokenizer(
-            nlp_en.vocab,
-            rules={},
-            prefix_search=compile_prefix_regex(nlp_en.Defaults.prefixes).search,
-            suffix_search=compile_suffix_regex(suffixes).search,
-            infix_finditer=infix_re.finditer,
-            token_match=nlp_en.Defaults.token_match,
+        #tokenizer fix
+        APOSTROPHE_TOKEN_RE = re.compile(
+            r"^\p{L}+(?:['’`]\p{L}+)*['’`]?$",
+            re.UNICODE
         )
-
+        for lang, nlp in self.nlps.items():
+            nlp = self.nlps[lang]
+            nlp.tokenizer = Tokenizer(
+                nlp.vocab,
+                rules={},
+                prefix_search=nlp.tokenizer.prefix_search,
+                suffix_search=nlp.tokenizer.suffix_search,
+                infix_finditer=compile_infix_regex(nlp.Defaults.infixes).finditer,
+                token_match=APOSTROPHE_TOKEN_RE.match,
+            )
+            #sentencizer fix
+        for nlp in self.nlps.values():
+            if "parser" in nlp.pipe_names:
+                nlp.disable_pipes("parser")
+            nlp.add_pipe("sentencizer")
         self.detector = LanguageDetectorBuilder.from_languages(
             Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.SPANISH
         ).with_minimum_relative_distance(0.6).build()
@@ -164,6 +167,7 @@ class Olaph:
 
     def _lookup(self, word: str, dictionary: dict, pos: Optional[str], tense: Optional[str]) -> Optional[str]:
         entry = dictionary.get(word)
+        #print(word, entry, pos, tense)
         if not entry:
             return None
         key = (pos or "") + (tense or "")
@@ -340,7 +344,7 @@ class Olaph:
         return self._spell_letters(text, lang) or self._spell_letters(text, "en")
 
     def _preprocess_sentence(self, sentence: str, lang: str) -> str:
-        sentence = sentence.replace("’", "").replace("-", " ")
+        sentence = sentence.replace("-", " ").replace("’", "'")
         sentence = re.sub(r" +", " ", sentence)
         for k, v in self.lang_replacements_dict.get(lang, {}).items():
             pattern = rf"\b{re.escape(k)}\b"
@@ -409,6 +413,7 @@ class Olaph:
         tokens = []
 
         for token in doc:
+            print(token)
             raw = token.text
             if raw in string.punctuation:
                 tokens.append(raw)
