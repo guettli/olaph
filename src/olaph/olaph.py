@@ -413,7 +413,6 @@ class Olaph:
         tokens = []
 
         for token in doc:
-            print(token)
             raw = token.text
             if raw in string.punctuation:
                 tokens.append(raw)
