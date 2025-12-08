@@ -6,13 +6,10 @@ from typing import Dict, List, Optional
 
 import spacy
 from spacy.tokenizer import Tokenizer
-from spacy.util import compile_prefix_regex, compile_infix_regex, compile_suffix_regex
+from spacy.util import compile_infix_regex
 
 from lingua import Language, LanguageDetectorBuilder
 from num2words import num2words
-import requests
-import zipfile
-import io
 
 from .german_normalizer import Normalizer
 from .english_normalizer import normalize_text as normalize_english
@@ -28,15 +25,6 @@ class Olaph:
         self.base_dir = Path(__file__).resolve().parent
         self.langs = ("en", "de", "fr", "es")
         self.normalizer = Normalizer()
-
-        self.dictionary_path = self.base_dir / "dictionaries"
-        if not self.dictionary_path.exists():
-            #download dictionaries from opendata
-            print("Dictionaries do not exist locally. Downloading...")
-            response = requests.get("https://opendata.iisys.de/opendata/Datasets/olaph/dictionaries.zip")
-            response.raise_for_status()
-            with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-                z.extractall(self.base_dir)
 
         self.lang_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
         self.all_lang_word_dict: Dict[str, Dict[str, str]] = {}

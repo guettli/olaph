@@ -10,36 +10,36 @@ CURRENCY_UNITS = {
     "¥": ("yen", "sen"),
 }
 
-def _clean_style(s: str) -> str:
+def _clean_style(s: str):
     s = s.replace("-", " ").replace(",", " ")
     return re.sub(r"\s+", " ", s).strip()
 
-def _int_words(n: int) -> str:
+def _int_words(n: int):
     return _clean_style(inflect_engine.number_to_words(n, andword="", zero="zero"))
 
-def _ordinal_words(n: int) -> str:
+def _ordinal_words(n: int):
     return _clean_style(inflect_engine.number_to_words(inflect_engine.ordinal(n), andword="", zero="zero"))
 
-def _year_words(n: int) -> str:
+def _year_words(n: int):
     first, second = divmod(n, 100)
     return _clean_style(
         f"{inflect_engine.number_to_words(first, andword='', zero='zero')} "
         f"{inflect_engine.number_to_words(second, andword='', zero='zero')}"
     )
 
-def normalize_text(text: str) -> str:
+def normalize_text(text: str):
     pattern = re.compile(
         r"""(?<![A-Za-z])
-            (?P<cur>[$€£¥])?             # optional currency
+            (?P<cur>[$€£¥])? #currency
             (?P<int>\d{1,3}(?:,\d{3})+|\d+)
-            (?:\.(?P<frac>\d+))?         # optional decimal
-            (?P<ord>st|nd|rd|th)?        # optional ordinal suffix
-            (?P<unit>[A-Za-z%°]+)?       # optional unit like m, kg, km, %
+            (?:\.(?P<frac>\d+))? #decimal
+            (?P<ord>st|nd|rd|th)?#ordinal
+            (?P<unit>[A-Za-z%°]+)?#units
         """,
         re.VERBOSE,
     )
 
-    def repl(m: re.Match) -> str:
+    def repl(m: re.Match):
         cur = m.group("cur")
         int_part = m.group("int")
         frac = m.group("frac")
@@ -83,7 +83,6 @@ def normalize_text(text: str) -> str:
 
     return pattern.sub(repl, text)
 
-# --- Example usage ---
 if __name__ == "__main__":
     samples = [
         "I was born in 1994.",
