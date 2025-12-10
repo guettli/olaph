@@ -171,7 +171,14 @@ class Normalizer:
         for date in dates:
             day, month, year = date.split(".")
             sentence_split = input_sentence.split()
-            number_idx = sentence_split.index(date)
+            number_idx = None
+            if date in sentence_split:
+                number_idx = sentence_split.index(date)
+            else:
+                for idx, entry in enumerate(sentence_split):
+                    if date in entry:
+                        number_idx = idx
+                        break
             if number_idx != 0:
                 prev_word = sentence_split[number_idx-1]
                 day = self.normalize_single_ordinal(day.lstrip("0"), prev_word)
