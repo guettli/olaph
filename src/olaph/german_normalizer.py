@@ -179,6 +179,8 @@ class Normalizer:
                     if date in entry:
                         number_idx = idx
                         break
+            if number_idx is None:
+                continue
             if number_idx != 0:
                 prev_word = sentence_split[number_idx-1]
                 day = self.normalize_single_ordinal(day.lstrip("0"), prev_word)

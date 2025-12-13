@@ -23,7 +23,7 @@ class Olaph:
     def __init__(self):
         print("Initializing OLaPh...")
         self.base_dir = Path(__file__).resolve().parent
-        self.langs = ("en", "de", "fr", "es")
+        self.langs = ("en", "de", "fr", "es", "pl")
         self.normalizer = Normalizer()
 
         self.lang_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
@@ -43,6 +43,7 @@ class Olaph:
             "en": spacy.load("en_core_web_sm"),
             "fr": spacy.load("fr_core_news_sm"),
             "es": spacy.load("es_core_news_sm"),
+            "pl" : spacy.load("pl_core_news_sm"),
         }
         #tokenizer fix
         APOSTROPHE_TOKEN_RE = re.compile(
