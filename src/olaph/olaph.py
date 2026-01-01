@@ -336,11 +336,11 @@ class Olaph:
         sentence = sentence.replace("-", " ").replace("’", "'")
         sentence = re.sub(r" +", " ", sentence)
         for k, v in self.lang_replacements_dict.get(lang, {}).items():
-            pattern = rf"\b{re.escape(k)}\b"
+            pattern = rf"(?<!\w){re.escape(k)}(?!\w)"
             sentence = re.sub(pattern, f" {v} ", sentence)
 
         for k, v in self.all_lang_replacements_dict.items():
-            pattern = rf"\b{re.escape(k)}\b"
+            pattern = rf"(?<!\w){re.escape(k)}(?!\w)"
             sentence = re.sub(pattern, f" {v} ", sentence)
 
         sentence = re.sub(r" +", " ", sentence).strip()
