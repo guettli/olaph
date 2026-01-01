@@ -64,3 +64,10 @@ def test_quotation_marks_fr(graphemes, phonemes):
 ])
 def test_quotation_marks_es(graphemes, phonemes):
     assert phonemizer.phonemize_text(graphemes, lang="es") == phonemes
+
+
+@pytest.mark.parametrize("graphemes, phonemes", [
+    ("Er musste laut BGB § 9 Absatz 3 um die 750 € Strafe zahlen.", "eːɐ̯ ˈmʊstə laʊ̯t ˈbeː ˈɡeː ˈbeː paʁaˈɡʁaːf nɔɪ̯n ˈapˌzat͡s dʁaɪ̯ ʊm diː ˈziːbn̩ˌhʊndɐtˈfʏnft͡sɪk ˈɔɪ̯ʁo ˈʃtʁaːfə ˈt͡saːlən."),
+])
+def test_replacements_de(graphemes, phonemes):
+    assert phonemizer.phonemize_text(graphemes, lang="de") == phonemes
