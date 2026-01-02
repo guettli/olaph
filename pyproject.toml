@@ -91,7 +91,7 @@ de-core-news-sm = { url = "https://github.com/explosion/spacy-models/releases/do
 en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" }
 es-core-news-sm = { url = "https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.8.0/es_core_news_sm-3.8.0-py3-none-any.whl" }
 fr-core-news-sm = { url = "https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.8.0/fr_core_news_sm-3.8.0-py3-none-any.whl" }
-pl_core_news_sm = { url = "https://github.com/explosion/spacy-models/releases/download/pl_core_news_sm-3.8.0/fr_core_news_sm-3.8.0-py3-none-any.whl" }
+pl-core-news-sm = { url = "https://github.com/explosion/spacy-models/releases/download/pl_core_news_sm-3.8.0/fr_core_news_sm-3.8.0-py3-none-any.whl" }
 
 [project.optional-dependencies]
 dev = ["pytest", "black", "flake8"]
