@@ -127,3 +127,5 @@ SPIEGEL	Spiegel
 u.	und
 &	und
 o.	oder
+$	Dollar
+€	Euro
