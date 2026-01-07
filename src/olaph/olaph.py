@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 import spacy
 from spacy.tokenizer import Tokenizer
 from spacy.util import compile_infix_regex
+from spacy.lang.lb import Luxembourgish
 
 from lingua import Language, LanguageDetectorBuilder
 from num2words import num2words
@@ -23,7 +24,7 @@ class Olaph:
     def __init__(self):
         print("Initializing OLaPh...")
         self.base_dir = Path(__file__).resolve().parent
-        self.langs = ("en", "de", "fr", "es", "pl")
+        self.langs = ("en", "de", "fr", "es", "pl", "lb")
         self.normalizer = Normalizer()
 
         self.lang_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
@@ -44,6 +45,7 @@ class Olaph:
             "fr": spacy.load("fr_core_news_sm"),
             "es": spacy.load("es_core_news_sm"),
             "pl" : spacy.load("pl_core_news_sm"),
+            "lb" : Luxembourgish()
         }
         #tokenizer fix
         APOSTROPHE_TOKEN_RE = re.compile(
@@ -66,7 +68,7 @@ class Olaph:
                 nlp.disable_pipes("parser")
             nlp.add_pipe("sentencizer")
         self.detector = LanguageDetectorBuilder.from_languages(
-            Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.SPANISH
+            Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.SPANISH, Language.POLISH
         ).with_minimum_relative_distance(0.6).build()
 
         self._load_dictionaries()
