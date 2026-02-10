@@ -10,6 +10,11 @@ CURRENCY_UNITS = {
     "¥": ("yen", "sen"),
 }
 
+UNIT_WORDS = {
+    "%": "percent",
+    "°": "degrees",
+}
+
 def _clean_style(s: str):
     s = s.replace("-", " ").replace(",", " ")
     return re.sub(r"\s+", " ", s).strip()
@@ -54,15 +59,19 @@ def normalize_text(text: str):
 
         elif cur:
             main_unit, sub_unit = CURRENCY_UNITS.get(cur, ("currency", "cent"))
-            main_words = _int_words(n)
-            main_unit = inflect_engine.plural(main_unit, n)
-
             if frac and not set(frac) == {"0"}:
                 cents = int(frac[:2].ljust(2, "0"))
                 cents_words = _int_words(cents)
                 sub_unit = inflect_engine.plural(sub_unit, cents)
-                words = f"{main_words} {main_unit} {cents_words} {sub_unit}"
+                if n == 0:
+                    words = f"{cents_words} {sub_unit}"
+                else:
+                    main_words = _int_words(n)
+                    main_unit = inflect_engine.plural(main_unit, n)
+                    words = f"{main_words} {main_unit} {cents_words} {sub_unit}"
             else:
+                main_words = _int_words(n)
+                main_unit = inflect_engine.plural(main_unit, n)
                 words = f"{main_words} {main_unit}"
 
         elif frac:
@@ -78,10 +87,14 @@ def normalize_text(text: str):
             words = _year_words(n) if is_year else _int_words(n)
 
         if unit:
+            for sym, word in UNIT_WORDS.items():
+                if unit.startswith(sym):
+                    unit = word + " " + unit[len(sym):] if unit[len(sym):] else word
+                    break
             return f"{words} {unit}"
         return words
 
-    return pattern.sub(repl, text)
+    return  pattern.sub(repl, text)
 
 if __name__ == "__main__":
     samples = [
@@ -93,7 +106,10 @@ if __name__ == "__main__":
         "It costs about 2.5 times more now.",
         "I paid €1,500.00 for that.",
         "The car is 5m long.",
-        "what about 1,365.2315"
+        "what about 1,365.2315",
+        "$0.25 for a two-year period.",
+        "Interest rates rose 3.5%.",
+        "The temperature was 90°F.",
     ]
     for s in samples:
         print(f"{s} -> {normalize_text(s)}")
