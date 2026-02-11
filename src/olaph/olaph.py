@@ -283,6 +283,19 @@ class Olaph:
         )
         if phoneme:
             return phoneme
+
+        #language detection fallback
+        try:
+            detected = self.detector.detect_language_of(word)
+            detected_lang = detected.iso_code_639_1.name.lower()
+            if detected_lang in self.langs and detected_lang != lang:
+                for candidate in self._transformations(word):
+                    phoneme = self._lookup(candidate, self.lang_dict[detected_lang], pos, tense)
+                    if phoneme:
+                        return phoneme
+        except Exception:
+            pass
+
         part_words = self._get_best_part_words(self._get_splits(cleaned, self.lang_dict[lang]), lang)
         if not part_words:
             cleaned_word = re.sub(r'[^\w\s]', '', cleaned)
@@ -331,6 +344,29 @@ class Olaph:
                 return self.lang_abbreviations_dict[other][text]
 
         return self._spell_letters(text, lang) or self._spell_letters(text, "en")
+
+    def _detect_foreign_entities(self, sentence: str, lang: str) -> Dict[str, str]:
+        foreign_entities: Dict[str, str] = {}
+        doc = self.nlps[lang](sentence)
+        for ent in doc.ents:
+            if ent.label_ != "ORG":
+                continue
+            try:
+                detected = self.detector.detect_language_of(ent.text)
+                ent_lang = detected.iso_code_639_1.name.lower()
+            except Exception:
+                continue
+            if ent_lang not in self.langs or ent_lang == lang:
+                continue
+            for word in ent.text.split():
+                word_clean = re.sub(r'[^\w\s]', '', word).strip()
+                if not word_clean:
+                    continue
+                try:
+                    foreign_entities[word_clean] = self.phonemize_word(word_clean, ent_lang)
+                except Exception:
+                    continue
+        return foreign_entities
 
     def _preprocess_sentence(self, sentence: str, lang: str) -> str:
         sentence = sentence.replace("-", " ").replace("’", "'")
@@ -396,7 +432,7 @@ class Olaph:
                     phonemized_sentence_corrected[idx-1] = "ði"
         return " ".join(phonemized_sentence_corrected).strip()
 
-    def _phonemize_sentence(self, sentence: str, lang: str) -> str:
+    def _phonemize_sentence(self, sentence: str, lang: str, foreign_entities: Optional[Dict[str, str]] = None) -> str:
         """Phonemize one sentence, fixing punctuation and spacing."""
         doc = self.nlps[lang](sentence)
         tokens = []
@@ -407,7 +443,7 @@ class Olaph:
                 tokens.append(raw)
                 continue
 
-            # Acronym or abbr
+            # acronym or abbr
             norm = self._normalize_acronym(raw)
             is_acronym = (
                 len(norm) > 1
@@ -421,6 +457,13 @@ class Olaph:
                 tokens.append(resolved if resolved else raw)
                 continue
 
+            # foreign entity (NER)
+            if foreign_entities:
+                clean = re.sub(r'[^\w\s]', '', raw).strip()
+                if clean in foreign_entities:
+                    tokens.append(foreign_entities[clean])
+                    continue
+
             try:
                 tense_list = token.morph.get("Tense")
                 tense = tense_list[0] if tense_list else None
@@ -432,7 +475,7 @@ class Olaph:
                 tokens.append(raw)
 
         out = " ".join(tokens).strip()
-        # spacing cleanup only
+        # spacing cleanup
         out = re.sub(r"\s+([,.!?;:])", r"\1", out)
         out = re.sub(r"([(\[{])\s+", r"\1", out)
         out = re.sub(r"\s+([)\]}])", r"\1", out)
@@ -450,8 +493,9 @@ class Olaph:
         results = []
 
         for sentence in sentences:
+            foreign_entities = self._detect_foreign_entities(sentence, lang)
             processed = self._preprocess_sentence(sentence, lang)
-            phonemized = self._phonemize_sentence(processed, lang)
+            phonemized = self._phonemize_sentence(processed, lang, foreign_entities)
             phonemized_postprocessed = self._postprocess_sentence(phonemized, lang)
             if phonemized_postprocessed:
                 results.append(phonemized_postprocessed)
