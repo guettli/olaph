@@ -3,6 +3,7 @@ import string
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional
+import unicodedata
 
 import spacy
 from spacy.tokenizer import Tokenizer
@@ -14,9 +15,19 @@ from num2words import num2words
 from .german_normalizer import Normalizer
 from .english_normalizer import normalize_text as normalize_english
 
+TONE_MAP = {
+    "¹": "˩",
+    "²": "˨",
+    "³": "˧",
+    "⁴": "˦",
+    "⁵": "˥",
+    "⁷": "˥",
+}
+_TONE_TABLE = str.maketrans(TONE_MAP)
+
 class Olaph:
     """
-    OLaPh phonemizer supporting DE, EN, FR, ES.
+    OLaPh phonemizer supporting DE, EN, FR, ES, PL.
     You should not have to use any function besides phonemize_text.
     """
 
@@ -482,11 +493,15 @@ class Olaph:
         return out
 
 
-    def phonemize_text(self, text: str, lang: str = "de") -> str:
+    def phonemize_text(self, text: str, lang: str = "de", normalize: bool = False) -> str:
         """
         Phonemize text into a phoneme string.
         Handles sentence segmentation, abbreviation resolution, normalization,
         and punctuation spacing.
+
+        Args:
+            normalize: If True, strip all punctuation from the output and do not
+                       append a trailing sentence-final period.
         """
         nlp = self.nlps[lang]
         sentences = [s.text for s in nlp(text).sents]
@@ -501,9 +516,14 @@ class Olaph:
                 results.append(phonemized_postprocessed)
 
         final_text = " ".join(results).strip()
-        final_text = re.sub(r"\s+([,.!?;:])", r"\1", final_text)
+        final_text = final_text.translate(_TONE_TABLE)
 
-        if not re.search(r"[.!?]\s*$", final_text):
-            final_text += "."
+        if normalize:
+            final_text = final_text.translate(str.maketrans("", "", string.punctuation))
+        else:
+            final_text = re.sub(r"\s+([,.!?;:])", r"\1", final_text)
+            if not re.search(r"[.!?]\s*$", final_text):
+                final_text += "."
 
-        return final_text
+        final_text = unicodedata.normalize("NFC", final_text)
+        return final_text.strip()
