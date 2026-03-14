@@ -83,3 +83,4 @@ def test_no_guessing(graphemes, lang, expected_refused):
     o = Olaph()
     o.phonemize_text(graphemes, lang=lang, no_guessing=True)
     assert sorted(o.refused_words) == sorted(expected_refused)
+
