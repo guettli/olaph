@@ -39,6 +39,7 @@ class Olaph:
 
         self.lang_dict: Dict[str, Dict[str, Dict[str, str]]] = {}
         self.all_lang_word_dict: Dict[str, Dict[str, str]] = {}
+        self.all_lang_word_source: Dict[str, str] = {}
         self.lang_letter_dict: Dict[str, Dict[str, str]] = {}
         self.lang_abbreviations_dict: Dict[str, Dict[str, str]] = {}
         self.lang_replacements_dict: Dict[str, Dict[str, str]] = {}
@@ -106,6 +107,7 @@ class Olaph:
 
                     if grapheme not in self.all_lang_word_dict:
                         self.all_lang_word_dict[grapheme] = {"base": phoneme}
+                        self.all_lang_word_source[grapheme] = lang
 
     def _load_general(self):
         path = self.base_dir / "dictionaries/general.txt"
@@ -113,7 +115,10 @@ class Olaph:
             for line in rf:
                 grapheme, phoneme = line.strip().split("\t")
                 phoneme = phoneme.split(",")[0].replace("/", "")
-                self.all_lang_word_dict.setdefault(grapheme.lower(), {"base": phoneme})
+                key = grapheme.lower()
+                if key not in self.all_lang_word_dict:
+                    self.all_lang_word_dict[key] = {"base": phoneme}
+                    self.all_lang_word_source[key] = "general"
 
     def _load_replacements(self):
         general_path = self.base_dir / "dictionaries/general_replacements.txt"
@@ -164,6 +169,16 @@ class Olaph:
                 for line in rf:
                     word, count = line.strip().split("\t")
                     self.word_probabilities[lang][word] = int(count)
+
+    def _lookup_all_lang(self, word: str, pos: Optional[str], tense: Optional[str], lang: str) -> Optional[str]:
+        """Look up word in all_lang_word_dict, but only return a hit if the entry
+        originated from the target language or from the language-independent general dict.
+        This prevents e.g. an English entry for "largent" masking the correct French
+        splitting of "l" + "argent"."""
+        source = self.all_lang_word_source.get(word)
+        if source is None or (source != lang and source != "general"):
+            return None
+        return self._lookup(word, self.all_lang_word_dict, pos, tense)
 
     def _lookup(self, word: str, dictionary: dict, pos: Optional[str], tense: Optional[str]) -> Optional[str]:
         entry = dictionary.get(word)
@@ -284,13 +299,13 @@ class Olaph:
                 return phoneme
 
         for candidate in self._transformations(word):
-            phoneme = self._lookup(candidate, self.all_lang_word_dict, pos, tense)
+            phoneme = self._lookup_all_lang(candidate, pos, tense, lang)
             if phoneme:
                 return phoneme
 
         cleaned = re.sub(r"[^\w\s]", "", word)
-        phoneme = self._lookup(cleaned, self.lang_dict[lang], pos, tense) or self._lookup(
-            cleaned, self.all_lang_word_dict, pos, tense
+        phoneme = self._lookup(cleaned, self.lang_dict[lang], pos, tense) or self._lookup_all_lang(
+            cleaned, pos, tense, lang
         )
         if phoneme:
             return phoneme
@@ -319,7 +334,7 @@ class Olaph:
         word_phonemized = ""
 
         for part_word in part_words:
-            part_lookup = self._lookup(part_word, self.lang_dict[lang], None, None) or self._lookup(part_word, self.all_lang_word_dict, None, None)
+            part_lookup = self._lookup(part_word, self.lang_dict[lang], None, None) or self._lookup_all_lang(part_word, None, None, lang)
             if not part_lookup:
                 self.failed_words.append(f"{part_word}\t{lang}")
             else:
