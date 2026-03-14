@@ -71,3 +71,15 @@ def test_quotation_marks_es(graphemes, phonemes):
 ])
 def test_replacements_de(graphemes, phonemes):
     assert phonemizer.phonemize_text(graphemes, lang="de") == phonemes
+
+@pytest.mark.parametrize("graphemes, lang, expected_refused", [
+    # French contractions resolved via splitting in the target-lang dict (no refusal)
+    ("L'amour est beau.", "fr", []),
+    # "cacahuète" is not in the French dictionary and cannot be split from it
+    ("Je mange des cacahuètes.", "fr", ["cacahuètes"]),
+])
+def test_no_guessing(graphemes, lang, expected_refused):
+    from olaph import NoGuessingRefusal
+    o = Olaph()
+    o.phonemize_text(graphemes, lang=lang, no_guessing=True)
+    assert sorted(o.refused_words) == sorted(expected_refused)
