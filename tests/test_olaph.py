@@ -75,8 +75,9 @@ def test_replacements_de(graphemes, phonemes):
 @pytest.mark.parametrize("graphemes, lang, expected_refused", [
     # French contractions resolved via splitting in the target-lang dict (no refusal)
     ("L'amour est beau.", "fr", []),
-    # "cacahuète" is not in the French dictionary and cannot be split from it
-    ("Je mange des cacahuètes.", "fr", ["cacahuètes"]),
+    # "Günter" is a German name not in the French dictionary; the umlaut blocks
+    # splitting via single French-dict characters, so it must be refused.
+    ("Il a rencontré Günter en Allemagne.", "fr", ["günter"]),
 ])
 def test_no_guessing(graphemes, lang, expected_refused):
     from olaph import NoGuessingRefusal
