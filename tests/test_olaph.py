@@ -81,6 +81,14 @@ def test_replacements_de(graphemes, phonemes):
 def test_no_guessing(graphemes, lang, expected_refused):
     from olaph import NoGuessingRefusal
     o = Olaph()
-    o.phonemize_text(graphemes, lang=lang, no_guessing=True)
+    o.phonemize_text(graphemes, lang=lang, guessing=False)
     assert sorted(o.refused_words) == sorted(expected_refused)
 
+
+def test_cross_language_default_result():
+    # "L'argent" was previously looked up as "largent" in the cross-language dict,
+    # returning the English IPA for "largent" instead of the correct French IPA.
+    # With source-aware lookups, the English entry is skipped and OLaPh correctly
+    # splits "largent" -> "l" + "argent" using the French dictionary.
+    o = Olaph()
+    assert o.phonemize_text("L'argent", lang="fr") == "laʁʒɑ̃."
