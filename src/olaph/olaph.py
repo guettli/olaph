@@ -306,15 +306,16 @@ class Olaph:
             if phoneme:
                 return phoneme
 
-        for candidate in self._transformations(word):
-            phoneme = self._lookup_all_lang(candidate, pos, tense, lang)
-            if phoneme:
-                return phoneme
+        if guessing:
+            for candidate in self._transformations(word):
+                phoneme = self._lookup_all_lang(candidate, pos, tense, lang)
+                if phoneme:
+                    return phoneme
 
         cleaned = re.sub(r"[^\w\s]", "", word)
-        phoneme = self._lookup(cleaned, self.lang_dict[lang], pos, tense) or self._lookup_all_lang(
-            cleaned, pos, tense, lang
-        )
+        phoneme = self._lookup(cleaned, self.lang_dict[lang], pos, tense)
+        if not phoneme and guessing:
+            phoneme = self._lookup_all_lang(cleaned, pos, tense, lang)
         if phoneme:
             return phoneme
 
@@ -346,7 +347,9 @@ class Olaph:
         word_phonemized = ""
 
         for part_word in part_words:
-            part_lookup = self._lookup(part_word, self.lang_dict[lang], None, None) or self._lookup_all_lang(part_word, None, None, lang)
+            part_lookup = self._lookup(part_word, self.lang_dict[lang], None, None)
+            if not part_lookup and guessing:
+                part_lookup = self._lookup_all_lang(part_word, None, None, lang)
             if not part_lookup:
                 if not guessing:
                     self.refused_words.append(word)
